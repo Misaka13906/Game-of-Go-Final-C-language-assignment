@@ -1,0 +1,15 @@
+.vs/
+Project1.aps
+Project1.sln
+Project1.vcxproj
+Project1.vcxproj.filters
+Project1.vcxproj.user
+
+x64/
+docs/
+img/
+test.txt
+
+include/structs.h
+include/functions.h
+src/placePiece.cpp
