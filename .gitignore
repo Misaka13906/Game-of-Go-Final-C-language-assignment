@@ -9,7 +9,3 @@ x64/
 docs/
 img/
 test.txt
-
-include/structs.h
-include/functions.h
-src/placePiece.cpp
