@@ -18,7 +18,7 @@ const int Size = 19;
 const int MAXMOVE = 1000;
 //const double Komi = 7.5;
 
-const int dx[] = {0,1,0,-1};
-const int dy[] = {1,0,-1,0};
+const int dx[] = {0,1,0,-1,0};
+const int dy[] = {1,0,-1,0,0};
 
 #endif

@@ -1,4 +1,5 @@
 #include "../include/global.h"
+#include <bitset>
 
 //extern Situ situs[MAXMOVE];
 extern Move moves[MAXMOVE];
@@ -11,7 +12,8 @@ bool isLegal;
 void createCopy(Situ now);
 void markExi(int x, int y, int id);
 void calcLiberty(Situ tmp, int id);
-int findAncestor(int id);
+void countLiberty(int x, int y, int rt);
+int findRoot(int id);
 void clearPieces(int id);
 void clear(int x, int y);
 bool isSame(Color previous[][Size]);
@@ -62,55 +64,72 @@ void markExi(int x, int y, int id)
 	tmp.lastMove = m[id];
 }
 
+std::bitset<Size*Size+1>vis, counted;
 void calcLiberty(Situ tmp, int id)
 {
-	m[id].ancestor = id; //并查集初始化
-	for(int i=0; i<4; i++) {
+	m[id].root = id; //并查集初始化
+	for(int i=0; i<5; i++) {
 		int x = m[id].x + dx[i], y = m[id].y + dy[i];
 		if(x<0 || y<0 || x>=Size || y>=Size) {
 			continue;
 		}
 		if(tmp.board[x][y] == blank) {
-			m[findAncestor(id)].liberty ++;
-		} else if(tmp.board[x][y] != m[id].color) {
-			m[findAncestor(tmp.pieces[x][y])].liberty --;
-		} else {
-			int an1 = findAncestor(id);
-			int an2 = findAncestor(tmp.pieces[x][y]);
+			continue;
+		}
+		if(tmp.board[x][y] == m[id].color) {
+			int an1 = findRoot(id);
+			int an2 = findRoot(tmp.pieces[x][y]);
 			if(an1 != an2) {
-				m[an1].ancestor = an2;
-				m[an2].liberty = m[an1].liberty + m[an2].liberty -1;
+				m[an1].root = an2;
 			}
 		}
-		int qwq = 0;//debug
+		int rt = findRoot(tmp.pieces[x][y]);
+		m[rt].liberty = 0;
+		counted.reset(); vis.reset();
+		countLiberty(m[rt].x, m[rt].y, rt);
 	}
-	m[id].ancestor = findAncestor(id);
-	//return m[m[id].ancestor].liberty;
 }
 
-// findAncestor: 使用并查集查找棋子所在棋串集合的唯一标识（祖先的id）
-int findAncestor(int id)
+void countLiberty(int x0, int y0, int rt)
 {
-	if(m[id].ancestor == id) {
+	for(int i=0; i<4; i++) {
+		int x = x0 + dx[i], y = y0 + dy[i];
+		if(x<0 || y<0 || x>=Size || y>=Size || vis[x * Size + y]) {
+			continue;
+		}
+		vis[x * Size + y] = true;
+		if(tmp.board[x][y] == tmp.board[x0][y0]) {
+			countLiberty(x, y, rt);
+		} else if(tmp.board[x][y] == blank && !counted[x * Size + y]) {
+			counted[x * Size + y] = true;
+			m[rt].liberty++;
+		}
+	}
+}
+
+// findRoot: 使用并查集查找棋子所在棋串集合的唯一标识（祖先的id）
+int findRoot(int id)
+{
+	if(m[id].root == id) {
 		return id;
 	}
-	return m[id].ancestor = findAncestor(m[id].ancestor);
+	return m[id].root = findRoot(m[id].root);
 }
 
 void clearPieces(int id)
 {
-	for(int i=0; i<4; i++) {
+	for(int i=0; i<5; i++) {
 		int x = m[id].x + dx[i], y = m[id].y + dy[i];
 		if(x<0 || y<0 || x>=Size || y>=Size || tmp.board[x][y] == blank) {
 			continue;
 		}
-		int liberty = m[findAncestor(tmp.pieces[x][y])].liberty;
+		int liberty = m[findRoot(tmp.pieces[x][y])].liberty;
 		if(tmp.board[x][y] != m[id].color && liberty == 0) {
 			clear(x, y);
 		}
 		int qwq = 0;//debug
 	}
-	if(m[findAncestor(id)].liberty == 0) {
+	if(m[findRoot(id)].liberty == 0) {
 		//clear(m[id].x, m[id].y); //Tromp-Taylor规则
 		isLegal = false; //Chinese rule
 	}
@@ -139,8 +158,8 @@ void clear(int x, int y)
 		}
 		if(tmp.board[x2][y2] == color) {
 			clear(x2, y2);
-		} else if(findAncestor(tmp.pieces[x2][y2]) != an) {
-			an = m[tmp.pieces[x2][y2]].ancestor;
+		} else if(findRoot(tmp.pieces[x2][y2]) != an) {
+			an = m[tmp.pieces[x2][y2]].root;
 			m[an].liberty ++;
 		}
 	}
