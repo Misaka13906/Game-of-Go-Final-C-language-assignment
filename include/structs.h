@@ -4,9 +4,15 @@
 typedef struct {
 	Color color;
 	int x, y, id; // 坐标及id
+<<<<<<< HEAD
 	int ancestor; // 该棋子并查集意义上的祖先的id
 	int liberty;
 		// 若为祖先(.ancestor=.id)，则存储祖先id所标识的棋串的气的数量
+=======
+	int root; // 该棋子并查集意义上的祖先的id
+	int liberty;
+		// 若为祖先(.root=.id)，则存储祖先id所标识的棋串的气的数量
+>>>>>>> 6eed924 (fixed)
 		// 若非祖先，则无意义
 	bool exist; // 标识该棋子是否在棋盘上
 } Move;
